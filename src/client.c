@@ -3447,6 +3447,24 @@ clientTile (Client *c, gint cx, gint cy, tilePositionType tile, gboolean send_co
         c->flags = old_flags;
         return FALSE;
     }
+    if ((abs(c->x - wc.x) < 60) &&
+        (abs(c->y - wc.y) < 60) &&
+        (abs(c->height - wc.height) < 60) &&
+        (abs(c->width - wc.width) < 60) &&
+        ((tile == TILE_LEFT) || (tile == TILE_UP_LEFT) || (tile == TILE_DOWN_LEFT) ||
+         (tile == TILE_RIGHT) || (tile == TILE_UP_RIGHT) || (tile == TILE_DOWN_RIGHT)))
+    {
+        /* The client is already tiled in the requested position.
+         * If performing a left or right tile, attempt to jump to the next
+         * monitor in the appropriate direction. */
+        gint jump_cx = ((tile == TILE_LEFT) || (tile == TILE_UP_LEFT) || (tile == TILE_DOWN_LEFT)) ? cx - rect.width : cx + rect.width;
+        myScreenFindMonitorAtPoint(screen_info, jump_cx, cy, &rect);
+        if (!clientNewTileSize (c, &wc, &rect, tile))
+        {
+            c->flags = old_flags;
+            return FALSE;
+        }
+    }
     FLAG_SET (c->flags, CLIENT_FLAG_RESTORE_SIZE_POS);
 
     c->x = wc.x;
