@@ -3447,7 +3447,8 @@ clientTile (Client *c, gint cx, gint cy, tilePositionType tile, gboolean send_co
         c->flags = old_flags;
         return FALSE;
     }
-    if ((abs(c->x - wc.x) < 60) &&
+    if (restore_position &&
+        (abs(c->x - wc.x) < 60) &&
         (abs(c->y - wc.y) < 60) &&
         (abs(c->height - wc.height) < 60) &&
         (abs(c->width - wc.width) < 60) &&
