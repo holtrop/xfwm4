@@ -3325,8 +3325,9 @@ clientNewMaxSize (Client *c, XWindowChanges *wc, GdkRectangle *rect)
             (wc->width >= c->size->min_width) && (wc->width <= c->size->max_width));
 }
 
+static
 gboolean
-clientToggleMaximized (Client *c, int mode, gboolean restore_position)
+clientToggleMaximizedMaybeConfigure(Client * c, int mode, gboolean restore_position, gboolean send_configure)
 {
     DisplayInfo *display_info;
     ScreenInfo *screen_info;
@@ -3396,7 +3397,10 @@ clientToggleMaximized (Client *c, int mode, gboolean restore_position)
             /* It's a shame, we are configuring the same client twice in a row */
             clientUnshade (c);
         }
-        clientConfigure (c, &wc, CWWidth | CWHeight | CWX | CWY, CFG_FORCE_REDRAW);
+        if (send_configure)
+        {
+            clientConfigure (c, &wc, CWWidth | CWHeight | CWX | CWY, CFG_FORCE_REDRAW);
+        }
     }
     /* Do not update the state while moving/resizing, CSD windows may resize */
     if (!FLAG_TEST (c->xfwm_flags, XFWM_FLAG_MOVING_RESIZING))
@@ -3405,6 +3409,64 @@ clientToggleMaximized (Client *c, int mode, gboolean restore_position)
     }
 
     return TRUE;
+}
+
+gboolean
+clientToggleMaximized (Client *c, int mode, gboolean restore_position)
+{
+    return clientToggleMaximizedMaybeConfigure(c, mode, restore_position, TRUE);
+}
+
+static
+void clientMoveMonitor(Client * c, int direction)
+{
+    GdkRectangle current_screen_rect;
+    GdkRectangle new_screen_rect;
+    XWindowChanges wc;
+    ScreenInfo * screen_info = c->screen_info;
+    gint ix = frameX(c);
+    gint iy = frameY(c) + (frameHeight(c) / 2);
+
+    myScreenFindMonitorAtPoint (screen_info,
+                                ix,
+                                iy,
+                                &current_screen_rect);
+    gint delta_x = direction * current_screen_rect.width;
+    gint nx = c->x + delta_x;
+    myScreenFindMonitorAtPoint (screen_info,
+                                nx,
+                                iy,
+                                &new_screen_rect);
+    if (current_screen_rect.x == new_screen_rect.x)
+        return;
+
+    wc.x = nx;
+    wc.y = c->y;
+    wc.width = c->width;
+    wc.height = c->height;
+
+    /* If we're maximized, store the mode and unmaximize. */
+    unsigned long max_mode = c->flags & CLIENT_FLAG_MAXIMIZED;
+    if (max_mode != 0u)
+    {
+        clientToggleMaximizedMaybeConfigure(c, max_mode, TRUE, FALSE);
+        c->x = c->old_x + delta_x;
+        clientToggleMaximizedMaybeConfigure(c, max_mode, TRUE, TRUE);
+    }
+    else
+    {
+        clientConfigure(c, &wc, CWWidth | CWHeight | CWX | CWY, CFG_FORCE_REDRAW);
+    }
+}
+
+void clientMoveLeft(Client * c)
+{
+    clientMoveMonitor(c, -1);
+}
+
+void clientMoveRight(Client * c)
+{
+    clientMoveMonitor(c, 1);
 }
 
 gboolean

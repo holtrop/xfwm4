@@ -429,9 +429,13 @@ handleKeyPress (DisplayInfo *display_info, XKeyEvent * ev)
                 clientFill (c, CLIENT_FILL_HORIZ);
                 break;
             case KEY_TILE_DOWN:
+#if 0
                 clientTile (c, frameX (c) + frameWidth (c) / 2,
                                frameY (c) + frameHeight (c) / 2,
                                TILE_DOWN, TRUE, TRUE);
+#endif
+                /* Abuse TILE_DOWN hotkey to mean move left one monitor. */
+                clientMoveLeft(c);
                 break;
             case KEY_TILE_LEFT:
                 clientTile (c, frameX (c) + frameWidth (c) / 2,
@@ -444,9 +448,13 @@ handleKeyPress (DisplayInfo *display_info, XKeyEvent * ev)
                                TILE_RIGHT, TRUE, TRUE);
                 break;
             case KEY_TILE_UP:
+#if 0
                 clientTile (c, frameX (c) + frameWidth (c) / 2,
                                frameY (c) + frameHeight (c) / 2,
                                TILE_UP, TRUE, TRUE);
+#endif
+                /* Abuse TILE_UP hotkey to mean move right one monitor. */
+                clientMoveRight(c);
                 break;
             case KEY_TILE_DOWN_LEFT:
                 clientTile (c, frameX (c) + frameWidth (c) / 2,

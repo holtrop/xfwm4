@@ -471,6 +471,8 @@ gboolean                 clientTile                             (Client *,
                                                                  tilePositionType,
                                                                  gboolean,
                                                                  gboolean);
+void                     clientMoveLeft                         (Client *);
+void                     clientMoveRight                        (Client *);
 void                     clientUpdateOpacity                    (Client *);
 void                     clientUpdateAllOpacity                 (ScreenInfo *);
 void                     clientSetOpacity                       (Client *,
